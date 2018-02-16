@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const fetch = require("node-fetch");
+const axios = require("axios");
 const Moment = require("moment");
 
 const app = express();
@@ -15,33 +16,38 @@ let yesterdayPrice;
 app.use(bodyParser.json());
 
 const getYesterday = () => {
-  return fetch(
-    "https://api.coindesk.com/v1/bpi/historical/close.json?for=yesterday"
-  )
-    .then(data => data.json())
-    .then(data => {
+  return axios
+    .get("https://api.coindesk.com/v1/bpi/historical/close.json?for=yesterday")
+    .then(({ data }) => {
       data = data.bpi;
-      return (yesterdayPrice = data[yesterday]);
+      yesterdayPrice = data[yesterday];
+      console.log(yesterdayPrice);
     })
     .catch(err => res.send(err));
 };
 
-const getCurrent = () => {
-  return fetch("https://api.coindesk.com/v1/bpi/currentprice.json")
-    .then(data => data.json())
-    .then(data => {
-      return (currentPrice = data.bpi.USD.rate);
+const getCurrent = (req, res) => {
+  return axios
+    .get("https://api.coindesk.com/v1/bpi/currentprice.json")
+    .then(({ data }) => {
+      currentPrice = data.bpi.USD.rate_float;
+      console.log("float: ", currentPrice);
     })
-    .catch(err => res.send(err));
+    .catch(err => console.log(err));
 };
 
 app.get("/", (req, res) => {
+  // getCurrent().then(
+  //
+  // )
+  //getYesterday();
   getCurrent().then(
     getYesterday().then(() => {
-      console.log(Number(yesterdayPrice) - currentPrice);
+      console.log(Number(yesterdayPrice));
       console.log(Number(currentPrice));
       console.log("Current num", currentPrice);
-      console.log(currentPrice - yesterdayPrice);
+      const diff = currentPrice - yesterdayPrice;
+      res.status(200).json(diff + "");
     })
   );
   // Promise.all(getCurrent(), getYesterday())
