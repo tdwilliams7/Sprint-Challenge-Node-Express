@@ -16,45 +16,32 @@ let yesterdayPrice;
 app.use(bodyParser.json());
 
 const getYesterday = () => {
-  return axios
-    .get("https://api.coindesk.com/v1/bpi/historical/close.json?for=yesterday")
-    .then(({ data }) => {
-      data = data.bpi;
-      yesterdayPrice = data[yesterday];
-      console.log(yesterdayPrice);
+  return fetch(
+    "https://api.coindesk.com/v1/bpi/historical/close.json?for=yesterday"
+  )
+    .then(response => response.json())
+    .then(response => {
+      yesterdayPrice = Number(response.bpi[yesterday]);
     })
-    .catch(err => res.send(err));
+    .catch(err => console.log(err));
 };
 
 const getCurrent = (req, res) => {
-  return axios
-    .get("https://api.coindesk.com/v1/bpi/currentprice.json")
-    .then(({ data }) => {
-      currentPrice = data.bpi.USD.rate_float;
-      console.log("float: ", currentPrice);
+  return fetch("https://api.coindesk.com/v1/bpi/currentprice.json")
+    .then(response => response.json())
+    .then(response => {
+      currentPrice = response.bpi.USD.rate_float;
     })
     .catch(err => console.log(err));
 };
 
 app.get("/", (req, res) => {
-  // getCurrent().then(
-  //
-  // )
-  //getYesterday();
   getCurrent().then(
     getYesterday().then(() => {
-      console.log(Number(yesterdayPrice));
-      console.log(Number(currentPrice));
-      console.log("Current num", currentPrice);
       const diff = currentPrice - yesterdayPrice;
       res.status(200).json(diff + "");
     })
   );
-  // Promise.all(getCurrent(), getYesterday())
-  //   .then(() => {
-  //     console.log(currentPrice);
-  //   })
-  //   .catch(err => console.log(err));
 });
 
 app.listen(PORT, err => {
