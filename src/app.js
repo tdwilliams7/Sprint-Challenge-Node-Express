@@ -39,7 +39,7 @@ app.get("/", (req, res) => {
   getCurrent().then(
     getYesterday().then(() => {
       const diff = currentPrice - yesterdayPrice;
-      res.status(200).json(diff + "");
+      res.status(200).json({ Difference: diff + "" });
     })
   );
 });
